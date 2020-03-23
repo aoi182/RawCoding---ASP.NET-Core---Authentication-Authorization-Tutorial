@@ -1,12 +1,16 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+
+using MyWebApp.AuthorizationRequirements;
 
 namespace MyWebApp
 {
@@ -22,6 +26,33 @@ namespace MyWebApp
                     config.Cookie.Name = "Grandmas.Cookie";
                     config.LoginPath = "/Home/Authenticate";
                 });
+
+            services.AddAuthorization(config =>
+            {
+                #region Method 1
+                //var defaultAuthBuilder = new AuthorizationPolicyBuilder();
+                //var defaultAuthPolicy = defaultAuthBuilder
+                //.RequireAuthenticatedUser()
+                //.RequireClaim(ClaimTypes.DateOfBirth)
+                //.Build();
+
+                //config.DefaultPolicy = defaultAuthPolicy; 
+                #endregion
+
+                #region Method 2
+                //config.AddPolicy("Claim.DoB", policyBuilder =>
+                //{
+                //    policyBuilder.RequireClaim(ClaimTypes.DateOfBirth);
+                //});
+                #endregion
+
+                #region Method 3 - Not working
+                config.AddPolicy("Claim.DoB", policyBuilder => policyBuilder.RequireCustomClaim(ClaimTypes.DateOfBirth));
+                #endregion
+            });
+
+            services.AddScoped<IAuthorizationHandler, CustomRequireClaimHandler>();
+
             services.AddControllersWithViews();
         }
 

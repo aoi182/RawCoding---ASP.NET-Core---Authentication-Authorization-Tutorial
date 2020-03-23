@@ -19,12 +19,19 @@ namespace MyWebApp.Controllers
             return View();
         }
 
+        [Authorize(Policy = "Claim.DoB")]
+        public ActionResult SecretPolicy()
+        {
+            return View(nameof(Secret));
+        }
+
         public ActionResult Authenticate()
         {
             var grandmaClaims = new List<Claim>
             {
                 new Claim(ClaimTypes.Name, "Bob"),
                 new Claim(ClaimTypes.Email, "Bob@fmail.co"),
+                new Claim(ClaimTypes.DateOfBirth, "11/11/2000"),
                 new Claim("Grandma.Says", "Vwery nice boy."),
             };
 
