@@ -7,10 +7,12 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
 using MyWebApp.AuthorizationRequirements;
+using MyWebApp.Controllers;
 
 namespace MyWebApp
 {
@@ -46,14 +48,26 @@ namespace MyWebApp
                 //});
                 #endregion
 
-                #region Method 3 - Not working
+                #region Method 3
                 config.AddPolicy("Claim.DoB", policyBuilder => policyBuilder.RequireCustomClaim(ClaimTypes.DateOfBirth));
                 #endregion
+
+                config.AddPolicy("Claim.Role.Admin", policyBuilder => policyBuilder.RequireClaim(ClaimTypes.Role, "Admin"));
             });
 
             services.AddScoped<IAuthorizationHandler, CustomRequireClaimHandler>();
+            services.AddScoped<IAuthorizationHandler, CookieJarAuthorizationHandler>();
+            
+            services.AddControllersWithViews(config => {
+                var defaultAuthBuilder = new AuthorizationPolicyBuilder();
+                var defaultAuthPolicy = defaultAuthBuilder
+                .RequireAuthenticatedUser()
+                .RequireClaim(ClaimTypes.DateOfBirth)
+                .Build();
 
-            services.AddControllersWithViews();
+                // global authorization filter
+                config.Filters.Add(new AuthorizeFilter(defaultAuthPolicy));
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

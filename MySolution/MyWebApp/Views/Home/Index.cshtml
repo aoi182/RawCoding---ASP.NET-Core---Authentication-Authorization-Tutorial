@@ -1,1 +1,17 @@
 ﻿<h1>Index</h1>
+
+@* Simple quick checks **@
+@if (User.Identity.IsAuthenticated)
+{
+  <h1>User is authenticated</h1>
+}
+
+
+@using Microsoft.AspNetCore.Authorization;
+@inject IAuthorizationService authorizationService;
+
+@* Big guns functions **@
+@if((await authorizationService.AuthorizeAsync(User, "Claim.DoB")).Succeeded)
+{
+  <h1>User has Dob claim</h1>
+}

@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.Security.Claims;
+using System.Threading.Tasks;
 
 namespace MyWebApp.Controllers
 {
@@ -25,6 +26,19 @@ namespace MyWebApp.Controllers
             return View(nameof(Secret));
         }
 
+        [Authorize(Roles = "Admin")]
+        public ActionResult SecretRole()
+        {
+            return View(nameof(Secret));
+        }
+
+        [Authorize(Policy = "Claim.Role.Admin")]
+        public ActionResult SecretAdminPolicy()
+        {
+            return View(nameof(Secret));
+        }
+
+        [AllowAnonymous]
         public ActionResult Authenticate()
         {
             var grandmaClaims = new List<Claim>
@@ -32,6 +46,7 @@ namespace MyWebApp.Controllers
                 new Claim(ClaimTypes.Name, "Bob"),
                 new Claim(ClaimTypes.Email, "Bob@fmail.co"),
                 new Claim(ClaimTypes.DateOfBirth, "11/11/2000"),
+                new Claim(ClaimTypes.Role, "Admin"),
                 new Claim("Grandma.Says", "Vwery nice boy."),
             };
 
@@ -50,6 +65,21 @@ namespace MyWebApp.Controllers
             HttpContext.SignInAsync(userPrincipal);
 
             return RedirectToAction("Index");
+        }
+
+        public async Task<IActionResult> DoStuff([FromServices]IAuthorizationService authorizationService)
+        {
+            var builder = new AuthorizationPolicyBuilder("Schema");
+            var customPolicy = builder.RequireClaim("Hello").Build();
+
+            var authResult = await authorizationService.AuthorizeAsync(User, customPolicy);
+
+            if (authResult.Succeeded)
+            {
+                return View("Index");
+            }
+
+            return View("Index");
         }
     }
 }
